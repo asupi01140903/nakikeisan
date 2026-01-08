@@ -1,89 +1,97 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>パチンコ回転率計算ツール</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>回転率計算ツール</title>
   <style>
-    body {
-      font-family: sans-serif;
-      max-width: 400px;
-      margin: 30px auto;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input {
-      width: 100%;
-      padding: 5px;
-      font-size: 16px;
-    }
-    button {
-      margin-top: 15px;
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-    }
-    .result {
-      margin-top: 15px;
-      font-size: 18px;
-      font-weight: bold;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 520px; margin: 24px auto; padding: 0 14px; }
+    h2 { margin: 0 0 12px; }
+    label { display:block; margin-top: 10px; font-size: 14px; }
+    input { width: 100%; padding: 10px; font-size: 16px; box-sizing: border-box; }
+    button { margin-top: 14px; width: 100%; padding: 12px; font-size: 16px; }
+    .box { margin-top: 14px; padding: 12px; border: 1px solid #ddd; border-radius: 10px; }
+    .result { font-size: 18px; font-weight: 700; }
+    .small { font-size: 12px; color: #555; margin-top: 6px; line-height: 1.4; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 420px){ .row{ grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
+  <h2>回転率計算ツール</h2>
 
-<h2>鳴き計算ツール</h2>
+  <div class="row">
+    <label>9Rの数
+      <input type="number" id="r9" value="0" min="0" step="1" inputmode="numeric">
+    </label>
 
-<label>9Rの数
-  <input type="number" id="r9" value="0">
-</label>
+    <label>4Rの数
+      <input type="number" id="r4" value="0" min="0" step="1" inputmode="numeric">
+    </label>
 
-<label>4Rの数
-  <input type="number" id="r4" value="0">
-</label>
+    <label>2Rの数
+      <input type="number" id="r2" value="0" min="0" step="1" inputmode="numeric">
+    </label>
 
-<label>2Rの数
-  <input type="number" id="r2" value="0">
-</label>
+    <label>投資玉数
+      <input type="number" id="invest" value="0" step="1" inputmode="numeric">
+    </label>
 
-<label>投資玉数
-  <input type="number" id="invest" value="0">
-</label>
+    <label>持ち玉数
+      <input type="number" id="hold" value="0" step="1" inputmode="numeric">
+    </label>
 
-<label>持ち玉数
-  <input type="number" id="hold" value="0">
-</label>
+    <label>回転数
+      <input type="number" id="spin" value="0" step="1" inputmode="numeric">
+    </label>
+  </div>
 
-<label>回転数
-  <input type="number" id="spin" value="0">
-</label>
+  <button id="calcBtn">計算する</button>
 
-<button onclick="calculate()">計算する</button>
+  <div class="box">
+    <div class="result" id="result">結果：—</div>
+    <div class="small" id="detail">分母：—</div>
+  </div>
 
-<div class="result" id="result">結果：</div>
+  <script>
+    function n(id){ return Number(document.getElementById(id).value || 0); }
 
-<script>
-function calculate() {
-  const r9 = Number(document.getElementById("r9").value);
-  const r4 = Number(document.getElementById("r4").value);
-  const r2 = Number(document.getElementById("r2").value);
-  const invest = Number(document.getElementById("invest").value);
-  const hold = Number(document.getElementById("hold").value);
-  const spin = Number(document.getElementById("spin").value);
+    function calculate() {
+      const r9 = n("r9");
+      const r4 = n("r4");
+      const r2 = n("r2");
+      const invest = n("invest");
+      const hold = n("hold");
+      const spin = n("spin");
 
-  const denominator = (9 * r9 + 4 * r4 + 2 * r2) + invest - hold;
+      // 分母：{（9×9R + 4×4R + 2×2R）×112 + 投資玉数 - 持ち玉数}
+      const roundsPart = (9 * r9 + 4 * r4 + 2 * r2);
+      const denominator = roundsPart * 112 + invest - hold;
 
-  if (denominator <= 0) {
-    document.getElementById("result").textContent = "結果：分母が0以下です";
-    return;
-  }
+      const resultEl = document.getElementById("result");
+      const detailEl = document.getElementById("detail");
 
-  const value = spin / denominator * 4;
-  document.getElementById("result").textContent =
-     "結果：" + value.toFixed(2);
-}
-</script>
+      detailEl.textContent = `分母：(${roundsPart})×112 + ${invest} - ${hold} = ${denominator}`;
 
+      if (!Number.isFinite(denominator) || denominator === 0) {
+        resultEl.textContent = "結果：分母が0です";
+        return;
+      }
+
+      if (denominator < 0) {
+        resultEl.textContent = "結果：分母が負です（入力を確認）";
+        return;
+      }
+
+      const value = (spin / denominator) * 4;
+      resultEl.textContent = `結果：${value.toFixed(2)}`;
+    }
+
+    document.getElementById("calcBtn").addEventListener("click", calculate);
+        // 入力のたびに自動更新したい場合は下を有効化
+    ["r9","r4","r2","invest","hold","spin"].forEach(id=>{
+      document.getElementById(id).addEventListener("input", calculate);
+    });
+  </script>
 </body>
 </html>
