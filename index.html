@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>パチンコ回転率計算ツール</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 400px;
+      margin: 30px auto;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 5px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .result {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h2>鳴き計算ツール</h2>
+
+<label>9Rの数
+  <input type="number" id="r9" value="0">
+</label>
+
+<label>4Rの数
+  <input type="number" id="r4" value="0">
+</label>
+
+<label>2Rの数
+  <input type="number" id="r2" value="0">
+</label>
+
+<label>投資玉数
+  <input type="number" id="invest" value="0">
+</label>
+
+<label>持ち玉数
+  <input type="number" id="hold" value="0">
+</label>
+
+<label>回転数
+  <input type="number" id="spin" value="0">
+</label>
+
+<button onclick="calculate()">計算する</button>
+
+<div class="result" id="result">結果：</div>
+
+<script>
+function calculate() {
+  const r9 = Number(document.getElementById("r9").value);
+  const r4 = Number(document.getElementById("r4").value);
+  const r2 = Number(document.getElementById("r2").value);
+  const invest = Number(document.getElementById("invest").value);
+  const hold = Number(document.getElementById("hold").value);
+  const spin = Number(document.getElementById("spin").value);
+
+  const denominator = (9 * r9 + 4 * r4 + 2 * r2) + invest - hold;
+
+  if (denominator <= 0) {
+    document.getElementById("result").textContent = "結果：分母が0以下です";
+    return;
+  }
+
+  const value = spin / denominator * 4;
+  document.getElementById("result").textContent =
+     "結果：" + value.toFixed(2);
+}
+</script>
+
+</body>
+</html>
