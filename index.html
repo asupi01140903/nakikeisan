@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>回転率計算ツール</title>
+  <title>鳴き計算ツール</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 560px; margin: 24px auto; padding: 0 14px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 580px; margin: 24px auto; padding: 0 14px; }
     h2 { margin: 0 0 12px; }
     label { display:block; margin-top: 10px; font-size: 14px; }
     input { width: 100%; padding: 10px; font-size: 16px; box-sizing: border-box; }
@@ -15,11 +15,28 @@
     .small { font-size: 12px; color: #555; margin-top: 6px; line-height: 1.4; }
     .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (max-width: 420px){ .row{ grid-template-columns: 1fr; } }
+    .title { margin-top: 18px; font-weight: 700; }
   </style>
 </head>
 <body>
   <h2>鳴き計算ツール</h2>
 
+  <div class="title">鳴きの自動計算（入力するだけ）</div>
+  <div class="row">
+    <label>開始ゲーム数
+      <input type="number" id="startGame" value="0" step="1" inputmode="numeric">
+    </label>
+
+    <label>総合ゲーム数
+      <input type="number" id="currentGame" value="0" step="1" inputmode="numeric">
+    </label>
+  </div>
+
+  <label>鳴き（自動入力されます）
+    <input type="number" id="spin" value="0" step="1" inputmode="numeric" readonly>
+  </label>
+
+  <div class="title">ラウンド・玉数の入力</div>
   <div class="row">
     <label>9Rの数
       <input type="number" id="r9" value="0" min="0" step="1" inputmode="numeric">
@@ -40,10 +57,6 @@
     <label>持ち玉数
       <input type="number" id="hold" value="0" step="1" inputmode="numeric">
     </label>
-
-    <label>回転数
-      <input type="number" id="spin" value="0" step="1" inputmode="numeric">
-    </label>
   </div>
 
   <button id="calcBtn">計算する</button>
@@ -56,30 +69,41 @@
   <script>
     function n(id){ return Number(document.getElementById(id).value || 0); }
 
+    function updateSpinFromGames() {
+      const startGame = n("startGame");
+      const currentGame = n("currentGame");
+
+      // 回転数 = 総合ゲーム数 - 開始ゲーム数
+      const spin = currentGame - startGame;
+
+      document.getElementById("spin").value = Number.isFinite(spin) ? spin : 0;
+      return spin;
+    }
+
     function calculate() {
+      const spin = updateSpinFromGames(); // ←ここで回転数を自動算出
+
       const r9 = n("r9");
       const r4 = n("r4");
       const r2 = n("r2");
       const invest = n("invest");
       const hold = n("hold");
-      const spin = n("spin");
 
-      // A =（9×9R + 4×4R + 2×2R）
-      const A = (9 * r9 + 4 * r4 + 2 * r2);
+      // 前回の式：
+      // 結果 = 回転数 ÷ { {（9×9R + 4×4R + 2×2R）×112 + 投資玉数 - 持ち玉数}×4÷1000 }
 
-      // B =（A×112 + 投資玉数 - 持ち玉数）
-      const B = (A * 112) + invest - hold;
-
-      // 分母 D = {B × 4 ÷ 1000}
-      const D = (B * 4) / 1000;
+      const A = (9 * r9 + 4 * r4 + 2 * r2);           // (9×9R + 4×4R + 2×2R)
+      const B = (A * 112) + invest - hold;            // (A×112 + 投資 - 持ち)
+      const D = (B * 4) / 1000;                       // {B×4÷1000}
 
       const resultEl = document.getElementById("result");
       const detailEl = document.getElementById("detail");
 
       detailEl.textContent =
+        `回転数=${spin}（現在${n("currentGame")} - スタート${n("startGame")}）｜ ` +
         `A=(9×${r9}+4×${r4}+2×${r2})=${A} ｜ ` +
         `B=(A×112+${invest}-${hold})=${B} ｜ ` +
-        `分母D=(B×4÷1000)=(${B}×4÷1000)=${D}`;
+        `分母D=(B×4÷1000)=${D}`;
 
       if (!Number.isFinite(D) || D === 0) {
         resultEl.textContent = "結果：分母が0です（入力を確認）";
@@ -89,15 +113,24 @@
         resultEl.textContent = "結果：分母が負です（入力を確認）";
         return;
       }
+      if (!Number.isFinite(spin)) {
+        resultEl.textContent = "結果：回転数が不正です";
+        return;
+      }
 
       const value = spin / D;
       resultEl.textContent = `結果：${value.toFixed(2)}`;
     }
 
     document.getElementById("calcBtn").addEventListener("click", calculate);
-    ["r9","r4","r2","invest","hold","spin"].forEach(id=>{
+
+    // 入力した瞬間に全部自動更新
+    ["startGame","currentGame","r9","r4","r2","invest","hold"].forEach(id=>{
       document.getElementById(id).addEventListener("input", calculate);
-      });
+    });
+
+    // 初期計算
+    calculate();
   </script>
 </body>
 </html>
