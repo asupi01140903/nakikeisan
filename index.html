@@ -98,11 +98,7 @@
       const resultEl = document.getElementById("result");
       const detailEl = document.getElementById("detail");
 
-      detailEl.textContent =
-        `回転数=${spin}（現在${n("currentGame")} - スタート${n("startGame")}）｜ ` +
-        `A=(9×${r9}+4×${r4}+2×${r2})=${A} ｜ ` +
-        `B=(A×112+${invest}-${hold})=${B} ｜ ` +
-        `分母D=(B×4÷1000)=${D}`;
+    
 
       if (!Number.isFinite(D) || D === 0) {
         resultEl.textContent = "結果：分母が0です（入力を確認）";
@@ -133,5 +129,6 @@
   </script>
 </body>
 </html>
+
 
 
